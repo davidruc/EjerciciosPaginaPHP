@@ -23,15 +23,10 @@
  */
 
  declare(strict_types=1);
- function distance(string $strandA, string $strandB): int
+
+ function from(DateTimeImmutable $date): DateTimeImmutable
  {
-     $lettersA = str_split($strandA);         
-     $lettersB = str_split($strandB);
-     if (count($lettersA) != count($lettersB))
-         throw new \InvalidArgumentException("DNA strands must be of equal length.");
-     return array_sum(
-         array_map(fn ($lA, $lB) => $lA != $lB, $lettersA, $lettersB)
-     );
+     return $date->modify(sprintf('+ %d seconds', 1_000_000_000));
  }
 
 ?>
