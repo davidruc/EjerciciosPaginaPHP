@@ -22,15 +22,16 @@
  * To disable strict typing, comment out the directive below.
  */
 
- declare (strict_types = 1);
-
- const COLORS = [
-     "black", "brown", "red", "orange", "yellow",
-     "green", "blue", "violet", "grey", "white",
-    ];
- function colorCode(string $color): int
+ declare(strict_types=1);
+ function distance(string $strandA, string $strandB): int
  {
-     return array_search($color, COLORS, true);
+     $lettersA = str_split($strandA);         
+     $lettersB = str_split($strandB);
+     if (count($lettersA) != count($lettersB))
+         throw new \InvalidArgumentException("DNA strands must be of equal length.");
+     return array_sum(
+         array_map(fn ($lA, $lB) => $lA != $lB, $lettersA, $lettersB)
+     );
  }
 
 ?>
