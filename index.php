@@ -39,5 +39,4 @@ class HighScores
         $this->personalTopThree = array_slice($sorted,0,3);
     }
 }
-
 ?>
