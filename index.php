@@ -1,6 +1,6 @@
 <?php
 
-/*
+ /*
  * By adding type hints and enabling strict type checking, code can become
  * easier to read, self-documenting and reduce the number of potential bugs.
  * By default, type declarations are non-strict, which means they will attempt
@@ -21,115 +21,51 @@
  *
  * To disable strict typing, comment out the directive below.
  */
-
- class Tournament
+    
+ declare(strict_types=1);
+ class SimpleCipher
  {
-     public $rawArray;
-     public $teamArray;
-     public $outputArray;
-     function __construct()
+     public const LOWER_BOUNDARY = 97; // lowercase a
+     public const UPPER_BOUNDARY = 122; // lowercase z
+     public function __construct(string $key = null)
      {
-         $this->rawArray = array();
-         $this->teamArray = array();
-         $this->outputArray = array();
-     }
-     function tally($inputMatch)
-     {
-         if (!$this->createRawArray($inputMatch)) return $this->getHeader();
-         $this->createOutputArray();
-         $this->addScoreToArray();
-         //$this->addPointsToArray();
-         usort($this->outputArray, array("Tournament", "compare"));
-         return $this->finalString();
-     }
-     function finalString()
-     {
-         $outputString = $this->getHeader();
-         foreach ($this->outputArray as $outputArrayValue) {
-             $outputString .= "\n" . $outputArrayValue[0] . str_repeat(' ', 31 - strlen($outputArrayValue[0])) . "|  " . $outputArrayValue[1] . " |  " . $outputArrayValue[2] . " |  " . $outputArrayValue[3] . " |  " . $outputArrayValue[4] . " |  " . $outputArrayValue[5];
+         if ($key === '' || preg_match('/[0-9A-Z]/', strval($key))) {
+             throw new InvalidArgumentException();
          }
-         return $outputString;
+         $this->key = $key ?: $this->generateRandomKey();
      }
-     function getHeader()
+     public function generateRandomChar(): string
      {
-         return "Team" . str_repeat(' ', 27) . "| MP |  W |  D |  L |  P";
-         //return "Team                           | MP |  W |  D |  L |  P";
+         return chr(rand(self::LOWER_BOUNDARY, self::UPPER_BOUNDARY));
      }
-     // erzeugt ein zwei Deminsionales Array, indem alle Informationen, des Übergebenen Strings gespeichert sind
-     function createRawArray($inputMatch)
+     public function generateRandomKey(): string
      {
-         if ($inputMatch == "") return false;
-         $this->rawArray = explode(PHP_EOL, $inputMatch);
-         //echo var_dump($formatArray);
-         for ($i = 0; $i < sizeOf($this->rawArray); $i++) {
-             $this->rawArray[$i] = explode(";", $this->rawArray[$i]);
-         }
-         //return fillPoints(getScoreArray(getTeamArray($formatArray), $formatArray));
-         //return $this->rawArray;
-         return true;
+         return join(array_map('self::generateRandomChar', range(1, 100)));
      }
-     
-     function createOutputArray(){
-         $this->createTeamArray();
-         foreach($this->teamArray as $teamArrayValue){
-             array_push($this->outputArray, array($teamArrayValue, 0, 0, 0, 0, 0));
-         }
-     }
-     function createTeamArray(){
-         foreach($this->rawArray as $rawArrayValue){
-             if(array_search($rawArrayValue[0], $this->teamArray) === false and array_search($rawArrayValue[1], $this->teamArray) === false){
-                 array_push($this->teamArray, $rawArrayValue[0]);
-                 array_push($this->teamArray, $rawArrayValue[1]);
-             }
-             else if(array_search($rawArrayValue[0], $this->teamArray) === false){
-                 array_push($this->teamArray, $rawArrayValue[0]);
-             }else if(array_search($rawArrayValue[1], $this->teamArray) === false){
-                 array_push($this->teamArray, $rawArrayValue[1]);
-             }
-         }
-     }
-     function addScoreToArray()
+     public function encode(string $plainText): string
      {
-         for($i = 0; $i < sizeOf($this->rawArray); $i++){
-             $indexOfTeam1 = array_search($this->rawArray[$i][0], $this->teamArray);
-             $indexOfTeam2 = array_search($this->rawArray[$i][1], $this->teamArray);
-             // Matchplayed für das Team1 +1
-             $this->outputArray[$indexOfTeam1][1] += 1;
-             // Matchplayed für das Team2 +1 
-             $this->outputArray[$indexOfTeam2][1] += 1;
-     
-             if ($this->rawArray[$i][2] === "win") {
-                 // win für Team1 +1
-                 $this->outputArray[$indexOfTeam1][2] += 1;
-                 // loss für Team2 +1
-                 $this->outputArray[$indexOfTeam2][4] += 1;
-                 // Punkte für Team1 +3
-                 $this->outputArray[$indexOfTeam1][5] += 3;
-             } elseif($this->rawArray[$i][2] === "loss"){
-                 // win für Team2 +1
-                 $this->outputArray[$indexOfTeam2][2] += 1;
-                 // loss für Team1 +1
-                 $this->outputArray[$indexOfTeam1][4] += 1;
-                 // Punkte für Team2 +3
-                 $this->outputArray[$indexOfTeam2][5] += 3;
-             } else {
-                 // draw für Team1 +1
-                 $this->outputArray[$indexOfTeam1][3] += 1;
-                 // draw für Team2 +1
-                 $this->outputArray[$indexOfTeam2][3] += 1;
-                 // Punkte für Team1 +1
-                 $this->outputArray[$indexOfTeam1][5] += 1;
-                 // Punkte für Team2 +1
-                 $this->outputArray[$indexOfTeam2][5] += 1;
-             }
+         $results = [];
+         foreach (str_split($plainText) as $i => $char) {
+             $length = ord(str_split($this->key)[$i]) - self::LOWER_BOUNDARY;
+             $shifto = ord($char) + $length;
+             $results[] = $shifto > self::UPPER_BOUNDARY
+                 ? chr($shifto - self::UPPER_BOUNDARY + self::LOWER_BOUNDARY - 1)
+                 : chr($shifto);
          }
+         return join($results);
      }
-     private static function compare($array1, $array2){
-         if($array1[5] > $array2[5]) return -1;
-         else if ($array1[5] < $array2[5]) return 1;
-         else return strcasecmp($array1[0], $array2[0]);
+     public function decode(string $cipherText): string
+     {
+         $results = [];
+         foreach (str_split($cipherText) as $i => $char) {
+             $length = ord(str_split($this->key)[$i]) - self::LOWER_BOUNDARY;
+             $shifto = ord($char) - $length;
+             $results[] = $shifto < self::LOWER_BOUNDARY
+                 ? chr($shifto + self::UPPER_BOUNDARY - self::LOWER_BOUNDARY + 1)
+                 : chr($shifto);
+         }
+         return join($results);
      }
-     
  }
 
 ?>
