@@ -1,6 +1,6 @@
 <?php
 
- /*
+/*
  * By adding type hints and enabling strict type checking, code can become
  * easier to read, self-documenting and reduce the number of potential bugs.
  * By default, type declarations are non-strict, which means they will attempt
@@ -21,51 +21,23 @@
  *
  * To disable strict typing, comment out the directive below.
  */
-    
- declare(strict_types=1);
- class SimpleCipher
- {
-     public const LOWER_BOUNDARY = 97; // lowercase a
-     public const UPPER_BOUNDARY = 122; // lowercase z
-     public function __construct(string $key = null)
-     {
-         if ($key === '' || preg_match('/[0-9A-Z]/', strval($key))) {
-             throw new InvalidArgumentException();
-         }
-         $this->key = $key ?: $this->generateRandomKey();
-     }
-     public function generateRandomChar(): string
-     {
-         return chr(rand(self::LOWER_BOUNDARY, self::UPPER_BOUNDARY));
-     }
-     public function generateRandomKey(): string
-     {
-         return join(array_map('self::generateRandomChar', range(1, 100)));
-     }
-     public function encode(string $plainText): string
-     {
-         $results = [];
-         foreach (str_split($plainText) as $i => $char) {
-             $length = ord(str_split($this->key)[$i]) - self::LOWER_BOUNDARY;
-             $shifto = ord($char) + $length;
-             $results[] = $shifto > self::UPPER_BOUNDARY
-                 ? chr($shifto - self::UPPER_BOUNDARY + self::LOWER_BOUNDARY - 1)
-                 : chr($shifto);
-         }
-         return join($results);
-     }
-     public function decode(string $cipherText): string
-     {
-         $results = [];
-         foreach (str_split($cipherText) as $i => $char) {
-             $length = ord(str_split($this->key)[$i]) - self::LOWER_BOUNDARY;
-             $shifto = ord($char) - $length;
-             $results[] = $shifto < self::LOWER_BOUNDARY
-                 ? chr($shifto + self::UPPER_BOUNDARY - self::LOWER_BOUNDARY + 1)
-                 : chr($shifto);
-         }
-         return join($results);
-     }
- }
+declare(strict_types=1);
+
+class HighScores
+{
+    public array $scores;
+    public int $latest;
+    public int $personalBest;
+    public array $personalTopThree;
+    public function __construct(array $scores)
+    {
+        $this->scores = $scores;
+        $this->latest = end($scores);
+        $this->personalBest = max($scores);
+        $sorted = $this->scores;
+        rsort($sorted);
+        $this->personalTopThree = array_slice($sorted,0,3);
+    }
+}
 
 ?>
